@@ -2,7 +2,7 @@
 export const BOT_CONFIG = {
   CHANNELS: {
     ITEM_ALERT_CHANNEL_ID: '1422231036418326670',
-    WEAPON_ALERT_CHANNEL_ID: '1389789894305644626',
+    WEAPON_ALERT_CHANNEL_ID: '1422232126396305541',
 
     LOG_CHANNELS: [
       { id: '1357081317623201944', city: 'Valentine' },
@@ -22,8 +22,8 @@ export const BOT_CONFIG = {
       'Major',
       '!Superintendente',
       '!Coronel',
-      '!Vice-Marshall',
-      '!Marshall',
+      '!General',
+      '!US Marechal',
     ],
   },
   TIMING: {
