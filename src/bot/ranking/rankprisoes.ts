@@ -15,9 +15,7 @@ const FIXED_CHANNEL_ID = '1355607647956766760';
 // ---------- Slash command builder ----------
 export const rankPrisoesData = new SlashCommandBuilder()
   .setName('rankprisoes')
-  .setDescription(
-    'Conta mensagens no canal prisões por militar em um intervalo de no máximo 15 dias e mostra um ranking.',
-  )
+  .setDescription('Ranking de prisões por militar (últimos 15 dias)')
   .addStringOption((opt) =>
     opt
       .setName('data_inicial')
