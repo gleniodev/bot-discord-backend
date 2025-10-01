@@ -21,11 +21,10 @@
     "db:populate": "ts-node prisma/populate_limits.ts",
     "sync:users": "ts-node ./src/bot/sync/sync-now.manual.ts",
     "sync:items": "ts-node ./src/bot/sync/scan-item-history.ts",
-     "medals:check": "ts-node src/bot/medals/medals-check.manual.ts",
+    "medals:check": "ts-node src/bot/medals/medals-check.manual.ts",
     "medals:check:quick": "ts-node src/bot/medals/medals-check.manual.ts --quick",
     "medals:check:detailed": "ts-node src/bot/medals/medals-check.manual.ts --detailed",
     "medals:sync": "ts-node src/bot/medals/medals-sync.manual.ts"
-    
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
