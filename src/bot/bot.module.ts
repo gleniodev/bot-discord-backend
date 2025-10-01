@@ -1,38 +1,3 @@
-// import { Module } from '@nestjs/common';
-// import { BotService } from './bot.service';
-// import { MessageListener } from './listeners/message.listener';
-// import { PrismaService } from '../../prisma/prisma.service';
-// import { SyncUsersModule } from './sync/sync-users.module';
-// // import { MedalsService } from './medals/medals.service';
-// import { MemberListener } from './listeners/member.listener';
-// import { Client, GatewayIntentBits, Partials } from 'discord.js';
-
-// @Module({
-//   imports: [SyncUsersModule],
-//   providers: [BotService, MessageListener, PrismaService],
-// })
-// export class BotModule {
-//   public client: Client;
-
-//   constructor() {
-//     this.client = new Client({
-//       intents: [
-//         GatewayIntentBits.Guilds,
-//         GatewayIntentBits.GuildMembers,
-//         GatewayIntentBits.GuildMessages,
-//         GatewayIntentBits.MessageContent, // se você já usa
-//       ],
-//       partials: [Partials.GuildMember, Partials.User],
-//     });
-
-//     // Registra listeners (inclui welcome/leave + invites)
-//     new MemberListener(this.client);
-//   }
-
-//   public async start(token: string) {
-//     await this.client.login(token);
-//   }
-// }
 import { Module, OnModuleInit } from '@nestjs/common';
 import { BotService } from './bot.service';
 import { MessageListener } from './listeners/message.listener';
@@ -45,34 +10,57 @@ import { WeaponController } from './listeners/controllers/weapon.controller';
 import { NotificationService } from './listeners/services/notification.service';
 
 @Module({
-  imports: [SyncUsersModule],
-  providers: [
-    BotService,
-    MessageListener,
-    PrismaService,
-    MessageProcessor,
-    ItemLimitChecker,
-    WeaponController,
-    NotificationService,
+  imports: [
+    SyncUsersModule, // ✅ Importa o módulo que exporta SyncUsersService
   ],
-  exports: [BotService],
+  providers: [
+    // ✅ Ordem de providers é importante
+    PrismaService, // 1. Serviços base primeiro
+    BotService, // 2. BotService (não tem dependências complexas)
+    MessageProcessor, // 3. Processadores
+    ItemLimitChecker, // 4. Checkers
+    WeaponController, // 5. Controllers
+    NotificationService, // 6. Services auxiliares
+    MessageListener, // 7. Listeners por último (dependem de tudo acima)
+  ],
+  exports: [BotService, PrismaService], // ✅ Exporta para outros módulos
 })
 export class BotModule implements OnModuleInit {
   constructor(private readonly botService: BotService) {}
 
-  onModuleInit() {
-    // Aguarda o bot estar pronto antes de inicializar o MemberListener
+  async onModuleInit() {
+    this.logger.log('🚀 BotModule inicializando...');
+
+    // Aguarda o bot estar completamente pronto antes de inicializar o MemberListener
     setTimeout(() => {
-      const client = this.botService.getClient();
+      try {
+        const client = this.botService.getClient();
 
-      if (!client) {
-        console.error('❌ Client não disponível no BotModule');
-        return;
+        if (!client) {
+          console.error('❌ Client não disponível no BotModule');
+          return;
+        }
+
+        if (!client.isReady()) {
+          console.warn('⚠️ Client ainda não está pronto, aguardando...');
+          client.once('ready', () => {
+            console.log('✅ Client pronto, inicializando MemberListener...');
+            new MemberListener(client);
+          });
+        } else {
+          // Inicializa o MemberListener com o Client do BotService
+          new MemberListener(client);
+          console.log('✅ MemberListener inicializado no BotModule');
+        }
+      } catch (error) {
+        console.error('❌ Erro ao inicializar MemberListener:', error);
       }
-
-      // Inicializa o MemberListener com o Client do BotService
-      new MemberListener(client);
-      console.log('✅ MemberListener inicializado no BotModule');
-    }, 3000); // 3 segundos para garantir que tudo está pronto
+    }, 3000);
   }
+
+  private readonly logger = {
+    log: (message: string) => console.log(`[BotModule] ${message}`),
+    error: (message: string, error?: any) =>
+      console.error(`[BotModule] ${message}`, error),
+  };
 }
