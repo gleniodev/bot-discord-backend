@@ -1,11 +1,5 @@
 // src/bot/listeners/message.listener.ts
-import {
-  Injectable,
-  OnModuleInit,
-  Logger,
-  Inject,
-  forwardRef,
-} from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { BotService } from '../bot.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { SyncUsersService } from '../sync/sync-users.service';
@@ -19,51 +13,20 @@ export class MessageListener implements OnModuleInit {
   private readonly logger = new Logger(MessageListener.name);
 
   constructor(
-    @Inject(forwardRef(() => BotService))
     private readonly botService: BotService,
     private readonly prisma: PrismaService,
-    @Inject(forwardRef(() => SyncUsersService))
     private readonly syncUsersService: SyncUsersService,
     private readonly messageProcessor: MessageProcessor,
     private readonly itemLimitChecker: ItemLimitChecker,
     private readonly weaponController: WeaponController,
     private readonly notificationService: NotificationService,
-  ) {
-    this.logger.log('🔧 MessageListener constructor chamado');
-  }
+  ) {}
 
-  async onModuleInit() {
-    this.logger.log('🔧 Inicializando MessageListener...');
-
-    // Aguarda um pouco para garantir que tudo está pronto
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    try {
-      // Verifica se o botService está disponível
-      if (!this.botService) {
-        this.logger.error('❌ BotService ainda não está disponível');
-        return;
-      }
-
-      // Aguarda o BotService estar completamente pronto
-      await this.botService.waitForReady(15000);
-      this.logger.log('✅ BotService está pronto, configurando listeners...');
+  onModuleInit() {
+    // Aguardar um pouco para garantir que o BotService terminou o login
+    setTimeout(() => {
       this.configurarListeners();
-    } catch (error) {
-      this.logger.error('❌ Erro ao aguardar BotService:', error);
-      // Tenta mesmo assim após um delay adicional
-      setTimeout(() => {
-        this.logger.warn('⚠️ Tentando configurar listeners após erro...');
-        try {
-          this.configurarListeners();
-        } catch (err) {
-          this.logger.error(
-            '❌ Falha definitiva ao configurar listeners:',
-            err,
-          );
-        }
-      }, 5000);
-    }
+    }, 2000); // 2 segundos de delay
   }
 
   private configurarListeners() {
